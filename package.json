@@ -1,6 +1,6 @@
 {
   "name": "sensum",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "A Discord.JS Bot Framework Written in Typescript.",
   "main": "./build/index.js",
   "scripts": {
