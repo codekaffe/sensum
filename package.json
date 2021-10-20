@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@types/app-root-path": "1.2.4",
-    "@types/glob": "7.1.4",
+    "@types/glob": "7.2.0",
     "@types/jest": "26.0.24",
     "@types/lodash.merge": "4.6.6",
     "@types/moment-duration-format": "2.2.3",
