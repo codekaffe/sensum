@@ -6,7 +6,7 @@ Sensum is a framework that aims to speed up discord bot development by offering 
 
 - [x] Commands
 - [x] Listeners
-- [ ] Scheduled Tasks
+- [x] Scheduled Tasks
 
 # Command Example
 

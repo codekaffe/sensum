@@ -9,7 +9,11 @@
     "prebuild": "rimraf build",
     "build": "tsc",
     "lint": "eslint ./src/**/*.ts",
-    "lint:fix": "eslint ./src/**/*.ts --fix"
+    "lint:fix": "eslint ./src/**/*.ts --fix",
+    "deps": "npx npm-check-updates",
+    "deps:patch": "npx npm-check-updates -ut patch",
+    "deps:minor": "npx npm-check-updates -ut minor",
+    "deps:major": "npx npm-check-updates -ut major"
   },
   "keywords": [
     "discord.js",
@@ -21,35 +25,35 @@
   "author": "Joaquim Neto <joaquimmy@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@discordjs/collection": "^0.1.6",
+    "@discordjs/collection": "^0.3.2",
     "app-root-path": "^3.0.0",
     "deep-object-diff": "^1.1.0",
     "discord.js": "^12.5.3",
-    "fastest-validator": "^1.11.1",
-    "glob": "^7.1.7",
+    "fastest-validator": "^1.12.0",
+    "glob": "^7.2.0",
     "lodash.merge": "^4.6.2",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
-    "mri": "^1.1.6",
+    "mri": "^1.2.0",
     "node-schedule": "^2.0.0"
   },
   "devDependencies": {
     "@types/app-root-path": "1.2.4",
-    "@types/glob": "7.1.4",
+    "@types/glob": "7.2.0",
     "@types/jest": "26.0.24",
     "@types/lodash.merge": "4.6.6",
     "@types/moment-duration-format": "2.2.3",
     "@types/mri": "1.1.1",
     "@types/node-schedule": "1.3.2",
     "@types/ws": "7.4.7",
-    "@typescript-eslint/eslint-plugin": "4.28.5",
-    "@typescript-eslint/parser": "4.28.5",
-    "eslint": "7.29.0",
-    "jest": "27.0.6",
+    "@typescript-eslint/eslint-plugin": "4.33.0",
+    "@typescript-eslint/parser": "4.33.0",
+    "eslint": "7.32.0",
+    "jest": "27.3.1",
     "rimraf": "3.0.2",
     "strict-event-emitter-types": "2.0.0",
-    "ts-jest": "27.0.5",
-    "typescript": "4.3.5"
+    "ts-jest": "27.0.7",
+    "typescript": "4.4.4"
   },
   "types": "./build/index.d.ts"
 }
