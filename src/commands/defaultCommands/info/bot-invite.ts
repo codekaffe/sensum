@@ -1,5 +1,5 @@
-import { Command } from '../../commands/command';
-import { Permission } from '../../interfaces';
+import { Command } from '../../command';
+import { Permission } from '../../../interfaces';
 import { Permissions } from 'discord.js';
 
 export default new Command({

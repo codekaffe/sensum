@@ -206,7 +206,7 @@ export const buildCommandMetadata = (
         }
       }
     } catch (err) {
-      if (!err.message.match(/Invalid '.+?' type in validator schema/)) {
+      if (!(err as Error).message.match(/Invalid '.+?' type in validator schema/)) {
         throw err;
       }
       bot.emit(

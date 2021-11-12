@@ -1,11 +1,12 @@
 {
   "name": "sensum",
-  "version": "0.9.5",
+  "version": "0.10.0",
   "description": "A Discord.JS Bot Framework Written in Typescript.",
   "main": "./build/index.js",
   "scripts": {
     "start": "node build/bot.js",
     "test": "tsc --noEmit --pretty && jest && npm run lint && echo \"LOOKS LIKE EVERYTHING IS GOOD! 💚\"",
+    "prepublish": "npm run build",
     "prebuild": "rimraf build",
     "build": "tsc",
     "lint": "eslint ./src/**/*.ts",

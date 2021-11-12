@@ -1,7 +1,7 @@
-import { IBotMessage } from './interfaces';
+import { IBotMessage } from '../interfaces';
 import { Snowflake } from 'discord.js';
 import appRoot from 'app-root-path';
-import { TextHelpers } from './client/helpers';
+import { TextHelpers } from './helpers';
 
 export interface ILevelPerm {
   level: number;

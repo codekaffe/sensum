@@ -2,8 +2,8 @@ import { MessageEmbed } from 'discord.js';
 import 'moment-duration-format';
 import moment from 'moment';
 
-import { Command } from '../../commands/command';
-import { Permission } from '../../interfaces';
+import { Command } from '../../command';
+import { Permission } from '../../../interfaces';
 
 export default new Command({
   name: 'info',

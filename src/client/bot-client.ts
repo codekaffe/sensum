@@ -5,22 +5,22 @@ import merge from 'lodash.merge';
 import { promisify, inspect } from 'util';
 import os from 'os';
 
-import { IBotClient, IEventHandler, IBotMessage } from './interfaces';
+import { IBotClient, IEventHandler, IBotMessage } from '../interfaces';
 import { defaultConfig, IConfig } from './bot.config';
-import { FileLoader, ChannelWatcher } from './modules';
-import { Command, CooldownManager } from './commands/command';
-import { Schedule, Task } from './tasks/tasks';
-import { EventHandler, wrapEventHandler } from './events/event-handler';
-import { Listener, ListenerIgnoreList, ListenerRunner } from './listeners/listener';
+import { Command, CooldownManager } from '../commands/command';
+import { Schedule, Task } from '../tasks/tasks';
+import { EventHandler, wrapEventHandler } from '../events/event-handler';
+import { Listener, ListenerIgnoreList, ListenerRunner } from '../listeners/listener';
+import { ChannelWatcher } from '../channel-watching/channel-watcher';
+import * as sensumInternalEvents from '../events';
+import * as FileLoader from '../modules/file-loader';
 
 import {
   IPrefixChecker,
   ICommandExtenders,
   IMetaExtender,
   makeCommandRunner,
-} from './commands/message';
-
-import * as sensumInternalEvents from './events';
+} from '../commands/message';
 
 export class BotClient extends Client implements IBotClient {
   config: IBotClient['config'];
@@ -45,14 +45,14 @@ export class BotClient extends Client implements IBotClient {
     this.commands = new Collection();
     this.aliases = new Collection();
     this.cooldowns = new CooldownManager(this);
-    this.botListeners = (new Collection() as unknown) as IBotClient['botListeners'];
-    this._listenerRunner = (undefined as unknown) as IBotClient['_listenerRunner'];
+    this.botListeners = new Collection() as unknown as IBotClient['botListeners'];
+    this._listenerRunner = undefined as unknown as IBotClient['_listenerRunner'];
     this.channelWatchers = new Collection<string, ChannelWatcher>();
     this.schedule = new Schedule(this, []);
 
     const permLevelCache: { [key: string]: number } = {};
-    for (let i = 0; i < this.config.permLevels?.length; i++) {
-      const thisLevel = this.config.permLevels[i];
+    for (let i = 0; i < this.config?.permLevels!.length; i++) {
+      const thisLevel = this.config.permLevels![i];
       permLevelCache[thisLevel.name as string] = thisLevel.level;
     }
     this.permLevelCache = permLevelCache;
@@ -97,15 +97,15 @@ export class BotClient extends Client implements IBotClient {
     if (!message.guild) return [];
     if (channelsInMessage.length === 0) return [];
 
-    const channelsInGuild = message.guild.channels.cache.filter(c => c.type === 'text');
+    const channelsInGuild = message.guild.channels.cache.filter((c) => c.type === 'text');
 
     const channels = channelsInMessage
       // remove duplicates
       .filter((v, i, a) => a.indexOf(v) === i)
       // get the channels
-      .map(channelId => channelsInGuild.get(channelId))
+      .map((channelId) => channelsInGuild.get(channelId))
       // remove falsy values
-      .filter(c => c !== undefined) as GuildChannel[];
+      .filter((c) => c !== undefined) as GuildChannel[];
 
     return channels;
   };
@@ -139,7 +139,7 @@ export class BotClient extends Client implements IBotClient {
   permlevel = (message: IBotMessage) => {
     let permlvl = 0;
 
-    const permOrder = this.config.permLevels.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
+    const permOrder = this.config.permLevels!.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
 
     while (permOrder.length) {
       const currentLevel = permOrder.shift();
@@ -178,7 +178,7 @@ export class BotClient extends Client implements IBotClient {
   }
 
   get userCount() {
-    return this.guilds.cache.map(g => g.memberCount).reduce((a, b) => a + b, 0);
+    return this.guilds.cache.map((g) => g.memberCount).reduce((a, b) => a + b, 0);
   }
 
   get serverCount() {
@@ -201,7 +201,7 @@ export class BotClient extends Client implements IBotClient {
       }
       this.commands.set(command.name, command);
       this.cooldowns.set(command.name.toLowerCase(), new Collection());
-      command.aliases?.forEach(alias => {
+      command.aliases?.forEach((alias) => {
         this.aliases.set(alias, command.name);
       });
     } catch (e) {
@@ -251,7 +251,7 @@ export class BotClient extends Client implements IBotClient {
 
     // Here we load **commands** into memory, as a collection, so they're accessible
     // here and everywhere else.
-    (commands as Command[]).forEach(cmd => this.loadCommand(cmd));
+    (commands as Command[]).forEach((cmd) => this.loadCommand(cmd));
     // Pass the command collection into the cooldowns manager.
     this.cooldowns.loadCommands(this.commands);
 
@@ -259,12 +259,12 @@ export class BotClient extends Client implements IBotClient {
     this.schedule = new Schedule(this, tasks as Task[]);
 
     // Load events into client.
-    (events as EventHandler<any>[]).forEach(event =>
+    (events as EventHandler<any>[]).forEach((event) =>
       this.on(event.name, wrapEventHandler(this, event)),
     );
 
     // Load listeners into client.
-    const mappedListeners = (listeners as Listener[]).map(listener => [
+    const mappedListeners = (listeners as Listener[]).map((listener) => [
       listener.makeName(),
       Object.assign(listener, { name: listener.makeName() }),
     ]);
@@ -288,7 +288,10 @@ export class BotClient extends Client implements IBotClient {
 
     // Channel Watcher events
     for (const [eventName, eventHandler] of Object.entries(sensumInternalEvents)) {
-      this.on(eventName as keyof ClientEvents, (eventHandler as IEventHandler).bind(null, this));
+      this.on(
+        eventName as keyof ClientEvents,
+        (eventHandler as unknown as IEventHandler).bind(null, this),
+      );
     }
 
     return super.login(token ?? this.config.token);
