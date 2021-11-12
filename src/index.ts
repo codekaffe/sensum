@@ -8,5 +8,5 @@ export * from './listeners';
 export * from './tasks';
 export * from './events';
 export { BotClient } from './client/bot-client';
-export { default as defaultCommands } from './defaultCommands';
+export { default as defaultCommands } from './commands/defaultCommands';
 export * from './errors';
