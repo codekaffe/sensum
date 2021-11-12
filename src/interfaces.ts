@@ -16,8 +16,8 @@ import { ValidationSchema, ValidationError } from 'fastest-validator';
 import { Argv } from 'mri';
 import { Job } from 'node-schedule';
 
-import { IConfig } from './bot.config';
-import { BotClient } from './bot-client';
+import { IConfig } from './client/bot.config';
+import { BotClient } from './client/bot-client';
 import { ChannelWatcher } from '.';
 import { Command, CooldownManager } from './commands/command';
 import { Listener, ListenerIgnoreList, ListenerRunner } from './listeners/listener';

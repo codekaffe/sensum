@@ -2,7 +2,7 @@
 import Collection from '@discordjs/collection';
 import { Snowflake } from 'discord.js';
 import { IBotMessage, IListenerOptions, CombinedMeta } from '../interfaces';
-import { BotClient } from '../bot-client';
+import { BotClient } from '../client/bot-client';
 import { isObject } from '../util';
 import { SensumSchemaError } from '../errors';
 import { buildCommandMetadata } from '../commands/command';

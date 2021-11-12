@@ -1,12 +1,12 @@
 // export * from './interfaces';
 export * from './client/helpers';
 export * from './interfaces';
-export * from './bot.config';
+export * from './client/bot.config';
 export * from './modules';
 export * from './commands';
 export * from './listeners';
 export * from './tasks';
 export * from './events';
-export { BotClient } from './bot-client';
+export { BotClient } from './client/bot-client';
 export { default as defaultCommands } from './defaultCommands';
 export * from './errors';

@@ -5,22 +5,22 @@ import merge from 'lodash.merge';
 import { promisify, inspect } from 'util';
 import os from 'os';
 
-import { IBotClient, IEventHandler, IBotMessage } from './interfaces';
+import { IBotClient, IEventHandler, IBotMessage } from '../interfaces';
 import { defaultConfig, IConfig } from './bot.config';
-import { FileLoader, ChannelWatcher } from './modules';
-import { Command, CooldownManager } from './commands/command';
-import { Schedule, Task } from './tasks/tasks';
-import { EventHandler, wrapEventHandler } from './events/event-handler';
-import { Listener, ListenerIgnoreList, ListenerRunner } from './listeners/listener';
+import { FileLoader, ChannelWatcher } from '../modules';
+import { Command, CooldownManager } from '../commands/command';
+import { Schedule, Task } from '../tasks/tasks';
+import { EventHandler, wrapEventHandler } from '../events/event-handler';
+import { Listener, ListenerIgnoreList, ListenerRunner } from '../listeners/listener';
 
 import {
   IPrefixChecker,
   ICommandExtenders,
   IMetaExtender,
   makeCommandRunner,
-} from './commands/message';
+} from '../commands/message';
 
-import * as sensumInternalEvents from './events';
+import * as sensumInternalEvents from '../events';
 
 export class BotClient extends Client implements IBotClient {
   config: IBotClient['config'];

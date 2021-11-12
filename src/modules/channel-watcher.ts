@@ -14,7 +14,7 @@ import { diff } from 'deep-object-diff';
 import StrictEventEmitter from 'strict-event-emitter-types';
 
 import { NonFunction, IBotMessage } from '../interfaces';
-import { BotClient } from '../bot-client';
+import { BotClient } from '../client/bot-client';
 
 export interface IChannelWatcherEvents {
   deleted: { channel: Channel };
