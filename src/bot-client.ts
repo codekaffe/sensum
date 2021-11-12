@@ -51,8 +51,8 @@ export class BotClient extends Client implements IBotClient {
     this.schedule = new Schedule(this, []);
 
     const permLevelCache: { [key: string]: number } = {};
-    for (let i = 0; i < this.config.permLevels?.length; i++) {
-      const thisLevel = this.config.permLevels[i];
+    for (let i = 0; i < this.config?.permLevels!.length; i++) {
+      const thisLevel = this.config.permLevels![i];
       permLevelCache[thisLevel.name as string] = thisLevel.level;
     }
     this.permLevelCache = permLevelCache;
@@ -139,7 +139,7 @@ export class BotClient extends Client implements IBotClient {
   permlevel = (message: IBotMessage) => {
     let permlvl = 0;
 
-    const permOrder = this.config.permLevels.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
+    const permOrder = this.config.permLevels!.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
 
     while (permOrder.length) {
       const currentLevel = permOrder.shift();

@@ -38,8 +38,9 @@ export const makeCommandRunner =
             prefix = await prefix;
           }
         } catch (err) {
-          err.message = 'A prefix check function threw an error.\n\n' + err.message;
-          bot.emit('error', err);
+          (err as Error).message =
+            'A prefix check function threw an error.\n\n' + (err as Error).message;
+          bot.emit('error', err as Error);
           return;
         }
         if (!prefix) return;
@@ -66,8 +67,9 @@ export const makeCommandRunner =
             await extended;
           }
         } catch (err) {
-          err.message = 'A meta extension function threw an error.\n\n' + err.message;
-          bot.emit('error', err);
+          (err as Error).message =
+            'A meta extension function threw an error.\n\n' + (err as Error).message;
+          bot.emit('error', err as Error);
           return;
         }
       }
@@ -84,7 +86,7 @@ export const makeCommandRunner =
     if (meta.isDM && !meta.command.runIn?.includes('dm')) {
       try {
         await message.channel
-          .send(formatString(bot.config.messages.COMMAND_FEEDBACK_SERVER_ONLY, meta.commandName))
+          .send(formatString(bot.config.messages!.COMMAND_FEEDBACK_SERVER_ONLY, meta.commandName))
           .then(async (msg) => {
             await wait(5000);
             await msg.delete().catch(() => {});
@@ -102,7 +104,7 @@ export const makeCommandRunner =
     ) {
       try {
         await message.channel
-          .send(formatString(bot.config.messages.COMMAND_FEEDBACK_DM_ONLY, meta.commandName))
+          .send(formatString(bot.config.messages!.COMMAND_FEEDBACK_DM_ONLY, meta.commandName))
           .then(async (msg) => {
             await wait(5000);
             await msg.delete().catch(() => {});
@@ -113,10 +115,10 @@ export const makeCommandRunner =
       }
     }
 
-    const requiredPermLevel = bot.config.permLevels.find(
+    const requiredPermLevel = bot.config.permLevels!.find(
       (l: ILevelPerm) => l.level === meta.command!.permission,
     )!;
-    const userPermLevel = bot.config.permLevels.find(
+    const userPermLevel = bot.config.permLevels!.find(
       (l: ILevelPerm) => l.level === meta.permLevel,
     )!;
     if (meta.permLevel < meta.command.permission!) {
@@ -134,7 +136,7 @@ export const makeCommandRunner =
           await message.channel
             .send(
               formatString(
-                bot.config.messages.COMMAND_FEEDBACK_MISSING_PERMISSION,
+                bot.config.messages!.COMMAND_FEEDBACK_MISSING_PERMISSION,
                 meta.permLevel,
                 userPermLevel.name,
                 requiredPermLevel.level,
@@ -160,8 +162,8 @@ export const makeCommandRunner =
         .send(
           formatString(
             meta.validationErrors.length > 1
-              ? bot.config.messages.COMMAND_FEEDBACK_MISSING_ARGS_PLURAL
-              : bot.config.messages.COMMAND_FEEDBACK_MISSING_ARGS_SINGULAR,
+              ? bot.config.messages!.COMMAND_FEEDBACK_MISSING_ARGS_PLURAL
+              : bot.config.messages!.COMMAND_FEEDBACK_MISSING_ARGS_SINGULAR,
             bot.lines(
               ...meta.validationErrors.map(
                 (err) => `**${err.field}** (${err.type}): ${err.message}`,
@@ -183,7 +185,7 @@ export const makeCommandRunner =
         await message.channel
           .send(
             formatString(
-              bot.config.messages.COOLDOWN,
+              bot.config.messages!.COOLDOWN,
               time.secondsToHumanReadable(cooldownLeft),
               meta.commandName,
             ),
@@ -244,7 +246,7 @@ export const makeCommandRunner =
         if (err instanceof TypeError && /catch/.test(err.message)) {
           // This error is from running .catch() in a normal function. We can ignore.
         } else {
-          errorHandler(err);
+          errorHandler(err as Error);
         }
       }
     };

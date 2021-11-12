@@ -305,8 +305,9 @@ export class ListenerRunner {
               await extended;
             }
           } catch (err) {
-            err.message = 'A meta extension function threw an error.\n\n' + err.message;
-            bot.emit('error', err);
+            (err as Error).message =
+              'A meta extension function threw an error.\n\n' + (err as Error).message;
+            bot.emit('error', err as Error);
             return;
           }
         }
@@ -324,8 +325,8 @@ export class ListenerRunner {
             const evaluation = listener.evaluate(message as unknown as IBotMessage, meta);
             // eslint-disable-next-line no-await-in-loop
             result = evaluation instanceof Promise ? await evaluation : evaluation;
-          } catch (e) {
-            this.bot.emit('error', e);
+          } catch (err) {
+            this.bot.emit('error', err as Error);
             break;
           }
           if (result === true || result === false) {

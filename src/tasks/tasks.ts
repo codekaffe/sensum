@@ -73,7 +73,7 @@ function safelyRun(bot: IBotClient, task: Task, fireDate: Date) {
     if (err instanceof TypeError && /catch/.test(err.message)) {
       // This error is from running .catch() on a normal function. We can ignore.
     } else {
-      errorHandler(err);
+      errorHandler((err as Error));
     }
   }
 }

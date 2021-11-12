@@ -77,13 +77,13 @@ export class ChannelWatcher extends (EventEmitter as { new (): ChannelWatcherEmi
           break;
         case 'channelPinsUpdate':
           const channel: DMChannel | TextChannel = data.channel;
-          const newPins = ((await channel.messages.fetchPinned()) as unknown) as Collection<
+          const newPins = (await channel.messages.fetchPinned()) as unknown as Collection<
             string,
             IBotMessage
           >;
           this.emit('pins', { oldPins: this.oldPins ?? new Collection(), newPins });
           this.latestState = data.channel;
-          this.oldPins = (newPins as unknown) as Collection<string, IBotMessage>;
+          this.oldPins = newPins as unknown as Collection<string, IBotMessage>;
           break;
         case 'channelUpdate':
           const difference: ChannelDiff = diff(data.oldChannel, data.newChannel);
@@ -119,11 +119,11 @@ export class ChannelWatcher extends (EventEmitter as { new (): ChannelWatcherEmi
           return;
       }
     } catch (err) {
-      const errorMsg = err.stack?.replace(
+      const errorMsg = (err as Error).stack?.replace(
         new RegExp(`${this.bot.config.root ?? __dirname}/`, 'g'),
         './',
       );
-      err.stack =
+      (err as Error).stack =
         `Channel watcher error.\n` +
         this.bot.helpers.lines(
           `Could not send message.`,
@@ -134,8 +134,8 @@ export class ChannelWatcher extends (EventEmitter as { new (): ChannelWatcherEmi
           JSON.stringify(data, null, 2),
           errorMsg!,
         ) +
-        err.stack;
-      this.bot.emit('error', err);
+        (err as Error).stack;
+      this.bot.emit('error', err as Error);
     }
   }
 
@@ -148,7 +148,7 @@ export class ChannelWatcher extends (EventEmitter as { new (): ChannelWatcherEmi
     this.type = channel.type;
     this.oldPins =
       // This is to make it work even if it has no pinned messages
-      (await (((channel as DMChannel | TextChannel).messages?.fetchPinned() as unknown) as Promise<
+      (await ((channel as DMChannel | TextChannel).messages?.fetchPinned() as unknown as Promise<
         Collection<string, IBotMessage>
       >)) ?? Promise.resolve(undefined);
     if (!this.ready) {

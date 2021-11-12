@@ -13,7 +13,7 @@ export default new Command({
       const clean = await bot.clean(evaled);
       message.channel.send(`\`\`\`js\n${clean}\n\`\`\``, { split: true });
     } catch (err) {
-      message.channel.send(`\`ERROR\` \`\`\`xl\n${await bot.clean(err)}\n\`\`\``, {
+      message.channel.send(`\`ERROR\` \`\`\`xl\n${await bot.clean(err as any)}\n\`\`\``, {
         split: true,
       });
     }
