@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node build/bot.js",
     "test": "tsc --noEmit --pretty && jest && npm run lint && echo \"LOOKS LIKE EVERYTHING IS GOOD! 💚\"",
+    "prepublish": "npm run build",
     "prebuild": "rimraf build",
     "build": "tsc",
     "lint": "eslint ./src/**/*.ts",

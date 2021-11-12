@@ -2,11 +2,11 @@
 export * from './client/helpers';
 export * from './interfaces';
 export * from './client/bot.config';
-export * from './modules';
 export * from './commands';
 export * from './listeners';
 export * from './tasks';
 export * from './events';
+export * as EmojiHelpers from './emoji/emojis';
 export { BotClient } from './client/bot-client';
 export { default as defaultCommands } from './commands/defaultCommands';
 export * from './errors';

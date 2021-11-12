@@ -18,7 +18,7 @@ import { Job } from 'node-schedule';
 
 import { IConfig } from './client/bot.config';
 import { BotClient } from './client/bot-client';
-import { ChannelWatcher } from '.';
+import { ChannelWatcher } from './channel-watching/channel-watcher';
 import { Command, CooldownManager } from './commands/command';
 import { Listener, ListenerIgnoreList, ListenerRunner } from './listeners/listener';
 import { Schedule } from './tasks/tasks';
