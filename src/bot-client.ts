@@ -45,8 +45,8 @@ export class BotClient extends Client implements IBotClient {
     this.commands = new Collection();
     this.aliases = new Collection();
     this.cooldowns = new CooldownManager(this);
-    this.botListeners = new Collection() as unknown as IBotClient['botListeners'];
-    this._listenerRunner = undefined as unknown as IBotClient['_listenerRunner'];
+    this.botListeners = (new Collection() as unknown) as IBotClient['botListeners'];
+    this._listenerRunner = (undefined as unknown) as IBotClient['_listenerRunner'];
     this.channelWatchers = new Collection<string, ChannelWatcher>();
     this.schedule = new Schedule(this, []);
 
@@ -97,15 +97,15 @@ export class BotClient extends Client implements IBotClient {
     if (!message.guild) return [];
     if (channelsInMessage.length === 0) return [];
 
-    const channelsInGuild = message.guild.channels.cache.filter((c) => c.type === 'text');
+    const channelsInGuild = message.guild.channels.cache.filter(c => c.type === 'text');
 
     const channels = channelsInMessage
       // remove duplicates
       .filter((v, i, a) => a.indexOf(v) === i)
       // get the channels
-      .map((channelId) => channelsInGuild.get(channelId))
+      .map(channelId => channelsInGuild.get(channelId))
       // remove falsy values
-      .filter((c) => c !== undefined) as GuildChannel[];
+      .filter(c => c !== undefined) as GuildChannel[];
 
     return channels;
   };
@@ -178,7 +178,7 @@ export class BotClient extends Client implements IBotClient {
   }
 
   get userCount() {
-    return this.guilds.cache.map((g) => g.memberCount).reduce((a, b) => a + b, 0);
+    return this.guilds.cache.map(g => g.memberCount).reduce((a, b) => a + b, 0);
   }
 
   get serverCount() {
@@ -201,7 +201,7 @@ export class BotClient extends Client implements IBotClient {
       }
       this.commands.set(command.name, command);
       this.cooldowns.set(command.name.toLowerCase(), new Collection());
-      command.aliases?.forEach((alias) => {
+      command.aliases?.forEach(alias => {
         this.aliases.set(alias, command.name);
       });
     } catch (e) {
@@ -251,7 +251,7 @@ export class BotClient extends Client implements IBotClient {
 
     // Here we load **commands** into memory, as a collection, so they're accessible
     // here and everywhere else.
-    (commands as Command[]).forEach((cmd) => this.loadCommand(cmd));
+    (commands as Command[]).forEach(cmd => this.loadCommand(cmd));
     // Pass the command collection into the cooldowns manager.
     this.cooldowns.loadCommands(this.commands);
 
@@ -259,12 +259,12 @@ export class BotClient extends Client implements IBotClient {
     this.schedule = new Schedule(this, tasks as Task[]);
 
     // Load events into client.
-    (events as EventHandler<any>[]).forEach((event) =>
+    (events as EventHandler<any>[]).forEach(event =>
       this.on(event.name, wrapEventHandler(this, event)),
     );
 
     // Load listeners into client.
-    const mappedListeners = (listeners as Listener[]).map((listener) => [
+    const mappedListeners = (listeners as Listener[]).map(listener => [
       listener.makeName(),
       Object.assign(listener, { name: listener.makeName() }),
     ]);
@@ -275,7 +275,7 @@ export class BotClient extends Client implements IBotClient {
     this._listenerRunner.listen(this.extensions);
   }
 
-  async login(token: string) {
+  async login(token?: string) {
     if (!this.config.skipFileLoading) {
       await this._loadSensumObjects();
     }

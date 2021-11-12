@@ -23,23 +23,23 @@ export interface IConfig {
   name?: string;
   useTypescript?: boolean;
   ownerID: Snowflake;
-  admins: Snowflake[];
-  support: Snowflake[];
+  admins?: Snowflake[];
+  support?: Snowflake[];
   token: string;
-  debug: boolean;
+  debug?: boolean;
   defaultSettings: IGuildDefaultSettings;
   defaultProfile: {
     [key: string]: any;
   };
-  permLevels: ILevelPerm[];
-  messages: {
-    COOLDOWN: string;
-    USAGE: string;
-    COMMAND_FEEDBACK_SERVER_ONLY: string;
-    COMMAND_FEEDBACK_DM_ONLY: string;
-    COMMAND_FEEDBACK_MISSING_PERMISSION: string;
-    COMMAND_FEEDBACK_MISSING_ARGS_SINGULAR: string;
-    COMMAND_FEEDBACK_MISSING_ARGS_PLURAL: string;
+  permLevels?: ILevelPerm[];
+  messages?: {
+    COOLDOWN?: string;
+    USAGE?: string;
+    COMMAND_FEEDBACK_SERVER_ONLY?: string;
+    COMMAND_FEEDBACK_DM_ONLY?: string;
+    COMMAND_FEEDBACK_MISSING_PERMISSION?: string;
+    COMMAND_FEEDBACK_MISSING_ARGS_SINGULAR?: string;
+    COMMAND_FEEDBACK_MISSING_ARGS_PLURAL?: string;
   };
   helpCategoryEmotes?: {
     [key: string]: string;
@@ -149,7 +149,7 @@ export const defaultConfig: IConfig = {
       name: 'Bot Support',
       // The check is by reading if an ID is part of this array. Yes, this means you need to
       // change this and reboot the bot to add a support user. Make it better yourself!
-      check: (message: IBotMessage) => message.client.config.support.includes(message.author.id),
+      check: (message: IBotMessage) => message.client.config.support!.includes(message.author.id),
     },
 
     // Bot Admin has some limited access like rebooting the bot or reloading commands.
@@ -157,7 +157,7 @@ export const defaultConfig: IConfig = {
       level: 9,
       name: 'Bot Admin',
       check: (message: IBotMessage) => {
-        return message.client.config.admins.includes(message.author.id);
+        return message.client.config.admins!.includes(message.author.id);
       },
     },
 
