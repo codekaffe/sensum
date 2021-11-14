@@ -11,7 +11,6 @@ import { Command, CooldownManager } from '../commands/command';
 import { Schedule, Task } from '../tasks/tasks';
 import { EventHandler, wrapEventHandler } from '../events/event-handler';
 import { Listener, ListenerIgnoreList, ListenerRunner } from '../listeners/listener';
-import { ChannelWatcher } from '../channel-watching/channel-watcher';
 import * as sensumInternalEvents from '../events';
 import * as FileLoader from '../modules/file-loader';
 
@@ -30,12 +29,11 @@ export class BotClient extends Client implements IBotClient {
   aliases: IBotClient['aliases'];
   permLevelCache: IBotClient['permLevelCache'];
   cooldowns: IBotClient['cooldowns'];
-  channelWatchers: IBotClient['channelWatchers'];
   extensions: ICommandExtenders;
   emit!: IBotClient['emit'];
   schedule: IBotClient['schedule'];
 
-  constructor(config: IConfig, options: ClientOptions = { disableMentions: 'everyone' }) {
+  constructor(config: IConfig, options: ClientOptions) {
     super(options);
 
     // Config
@@ -47,7 +45,6 @@ export class BotClient extends Client implements IBotClient {
     this.cooldowns = new CooldownManager(this);
     this.botListeners = new Collection() as unknown as IBotClient['botListeners'];
     this._listenerRunner = undefined as unknown as IBotClient['_listenerRunner'];
-    this.channelWatchers = new Collection<string, ChannelWatcher>();
     this.schedule = new Schedule(this, []);
 
     const permLevelCache: { [key: string]: number } = {};
@@ -97,7 +94,7 @@ export class BotClient extends Client implements IBotClient {
     if (!message.guild) return [];
     if (channelsInMessage.length === 0) return [];
 
-    const channelsInGuild = message.guild.channels.cache.filter((c) => c.type === 'text');
+    const channelsInGuild = message.guild.channels.cache.filter((c) => c.type === 'GUILD_TEXT');
 
     const channels = channelsInMessage
       // remove duplicates

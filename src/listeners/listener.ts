@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import Collection from '@discordjs/collection';
-import { Snowflake } from 'discord.js';
+import { Snowflake, TextChannel } from 'discord.js';
 import { IBotMessage, IListenerOptions, CombinedMeta } from '../interfaces';
 import { BotClient } from '../client/bot-client';
 import { isObject } from '../util';
@@ -144,8 +144,8 @@ export class ListenerIgnoreList {
    * @memberof ListenerIgnoreList
    */
   clear() {
-    const clearTimeout = (ignored: IgnoreSettings) =>
-      ignored.timeout ? this.bot.clearTimeout(ignored.timeout) : null;
+    const clearTimeout: any = (ignored: IgnoreSettings) =>
+      ignored.timeout ? clearTimeout(ignored.timeout as any) : null;
     this.guilds.forEach(clearTimeout);
     this.guilds.clear();
     this.channels.forEach(clearTimeout);
@@ -166,12 +166,12 @@ export class ListenerIgnoreList {
       return;
     }
     if (this.channels.get(id)?.timeout) {
-      this.bot.clearTimeout(this.channels.get(id)!.timeout!);
+      clearTimeout(this.channels.get(id)!.timeout!);
     }
     this.channels.set(id, {
       start: Date.now(),
       duration,
-      timeout: duration ? this.bot.setTimeout(() => this.channels.delete(id), duration) : null,
+      timeout: duration ? setTimeout(() => this.channels.delete(id), duration) : null,
     });
   }
 
@@ -189,12 +189,12 @@ export class ListenerIgnoreList {
       return;
     }
     if (this.guilds.get(id)?.timeout) {
-      this.bot.clearTimeout(this.guilds.get(id)!.timeout!);
+      clearTimeout(this.guilds.get(id)!.timeout!);
     }
     this.guilds.set(id, {
       start: Date.now(),
       duration,
-      timeout: duration ? this.bot.setTimeout(() => this.guilds.delete(id), duration) : null,
+      timeout: duration ? setTimeout(() => this.guilds.delete(id), duration) : null,
     });
   }
 
@@ -210,7 +210,7 @@ export class ListenerIgnoreList {
     }
     if (this.channels.has(id)) {
       const { timeout } = this.channels.get(id)!;
-      if (timeout) this.bot.clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
       this.channels.delete(id);
     }
   }
@@ -227,7 +227,7 @@ export class ListenerIgnoreList {
     }
     if (this.guilds.has(id)) {
       const { timeout } = this.guilds.get(id)!;
-      if (timeout) this.bot.clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
       this.guilds.delete(id);
     }
   }
@@ -271,27 +271,30 @@ export class ListenerRunner {
 
       if (!bot.botListeners.size) return;
 
-      function safeSend(...args: any) {
+      const safeSend = (...args: any): Promise<void | IBotMessage> => {
         const lines = [...args];
-        const lastArg = isObject(lines[lines.length - 1]) ? lines.pop() : undefined;
-        const msg = bot.lines(...lines, typeof lastArg === 'string' ? lastArg : '');
+        const lastArg = lines.pop();
+        const msg = bot.helpers.lines(...lines, typeof lastArg === 'string' ? lastArg : '');
 
         return channel()
-          .send(msg, lastArg)
-          .then((sentMessage) => {
-            if ((bot as any)?.logger! && sentMessage?.guild?.name) {
-              (bot as any)?.logger.debug(
-                'Sending listener message to guild:',
-                sentMessage.guild.name,
-              );
-            }
-          })
+          .send(isObject(lastArg) ? { ...lastArg, content: msg } : msg)
           .catch((err) => {
-            err.stack += `\n\nGuild: ${message.guild?.name}\n`;
-            err.stack += `Channel: ${message.channel?.id}\n`;
-            bot.emit('error', err);
-          });
-      }
+            const channelName = (message.channel as TextChannel).name;
+            const channelId = message.channel.id;
+            const guildName = meta.guild?.name;
+            const guildId = meta.guild?.id;
+            bot.emit(
+              'warn',
+              bot.helpers.lines(
+                `Could not send message.`,
+                `Channel: ${channelName} (${channelId})`,
+                `Guild: ${guildName} (${guildId})`,
+                `DM: ${meta.isDM}`,
+                `Error: ${err.message}`,
+              ),
+            );
+          }) as Promise<void | IBotMessage>;
+      };
 
       const entries = Object.entries(this.mappedListeners);
 

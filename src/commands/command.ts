@@ -152,7 +152,7 @@ export const buildCommandMetadata = (
   const meta = {} as ICommandMetadata;
 
   // Known props
-  meta.isDM = message.channel.type === 'dm';
+  meta.isDM = message.channel.type === 'DM';
   meta.userId = message.author.id;
   meta.tag = message.author.tag;
   meta.username = message.author.username;
@@ -283,7 +283,7 @@ export class CooldownManager extends Collection<string, Collection<Snowflake, nu
     }
     // User haven't used the command yet, add them to the collection
     this.updateTimeLeft(commandName, userId);
-    this.bot.setTimeout(() => timestamps.delete(userId), cooldownAmount);
+    setTimeout(() => timestamps.delete(userId), cooldownAmount);
     return 0;
   }
 }

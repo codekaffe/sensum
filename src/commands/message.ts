@@ -15,14 +15,6 @@ export interface ICommandExtenders {
 
 export const makeCommandRunner =
   (extensions: ICommandExtenders, bot: BotClient) => async (message: IBotMessage) => {
-    // Channel watchers
-    bot.setImmediate(() => {
-      bot.channelWatchers.forEach((watcher) => {
-        if (message.channel.id !== watcher.channelId) return;
-        watcher._channelEventHappened('message', { message, channel: message.channel });
-      });
-    });
-
     // Command handling
 
     // Don't answer to bots
@@ -203,11 +195,7 @@ export const makeCommandRunner =
     bot.cooldowns.updateTimeLeft(meta.commandName!, meta.userId);
 
     if (meta.command.delete) {
-      try {
-        await message.delete({ reason: `Executed the ${meta.commandName} command.` });
-      } catch {
-        /* This is fine. */
-      }
+      await message.delete().catch(() => {});
     }
 
     const safeSend = (...args: any): Promise<void | IBotMessage> => {
@@ -215,22 +203,24 @@ export const makeCommandRunner =
       const lastArg = lines.pop();
       const msg = bot.helpers.lines(...lines, typeof lastArg === 'string' ? lastArg : '');
 
-      return message.channel.send(msg, isObject(lastArg) ? lastArg : undefined).catch((err) => {
-        const channelName = (message.channel as TextChannel).name;
-        const channelId = message.channel.id;
-        const guildName = meta.guild?.name;
-        const guildId = meta.guild?.id;
-        bot.emit(
-          'warn',
-          bot.helpers.lines(
-            `Could not send message.`,
-            `Channel: ${channelName} (${channelId})`,
-            `Guild: ${guildName} (${guildId})`,
-            `DM: ${meta.isDM}`,
-            `Error: ${err.message}`,
-          ),
-        );
-      }) as Promise<void | IBotMessage>;
+      return message.channel
+        .send(isObject(lastArg) ? { ...lastArg, content: msg } : msg)
+        .catch((err) => {
+          const channelName = (message.channel as TextChannel).name;
+          const channelId = message.channel.id;
+          const guildName = meta.guild?.name;
+          const guildId = meta.guild?.id;
+          bot.emit(
+            'warn',
+            bot.helpers.lines(
+              `Could not send message.`,
+              `Channel: ${channelName} (${channelId})`,
+              `Guild: ${guildName} (${guildId})`,
+              `DM: ${meta.isDM}`,
+              `Error: ${err.message}`,
+            ),
+          );
+        }) as Promise<void | IBotMessage>;
     };
 
     meta.command.send = safeSend;

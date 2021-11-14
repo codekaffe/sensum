@@ -4,11 +4,9 @@ import {
   Guild,
   Snowflake,
   Message,
-  StringResolvable,
   MessageEditOptions,
   MessageEmbed,
   MessageOptions,
-  MessageAdditions,
   ClientEvents,
 } from 'discord.js';
 import Collection from '@discordjs/collection';
@@ -18,7 +16,6 @@ import { Job } from 'node-schedule';
 
 import { IConfig } from './client/bot.config';
 import { BotClient } from './client/bot-client';
-import { ChannelWatcher } from './channel-watching/channel-watcher';
 import { Command, CooldownManager } from './commands/command';
 import { Listener, ListenerIgnoreList, ListenerRunner } from './listeners/listener';
 import { Schedule } from './tasks/tasks';
@@ -49,7 +46,6 @@ interface ExtendedClient {
   commands: Collection<string, Command>;
   aliases: Collection<string, string>;
   cooldowns: CooldownManager;
-  channelWatchers: Collection<string, ChannelWatcher>;
   botListeners: Overwrite<
     Collection<string, Listener>,
     {
@@ -105,7 +101,7 @@ export interface IBotMessage
     {
       client: IBotClient;
       edit(
-        content: StringResolvable,
+        content: string,
         options?: MessageEditOptions | MessageEmbed,
       ): Promise<IBotMessage>;
     }
@@ -113,7 +109,7 @@ export interface IBotMessage
 
 export type CombinedMeta<T> = ICommandMetadata & T;
 
-type ISendFnLastArg = string | MessageOptions | MessageAdditions;
+type ISendFnLastArg = string | MessageOptions;
 type ISendFnReturn = Promise<void | IBotMessage>;
 
 export interface IListenerOptions<T> {

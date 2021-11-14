@@ -11,11 +11,9 @@ export default new Command({
     try {
       const evaled = eval(content);
       const clean = await bot.clean(evaled);
-      message.channel.send(`\`\`\`js\n${clean}\n\`\`\``, { split: true });
+      message.channel.send({ content: `\`\`\`js\n${clean}\n\`\`\`` });
     } catch (err) {
-      message.channel.send(`\`ERROR\` \`\`\`xl\n${await bot.clean(err as any)}\n\`\`\``, {
-        split: true,
-      });
+      message.channel.send(`\`ERROR\` \`\`\`xl\n${await bot.clean(err as any)}\n\`\`\``);
     }
   },
 });

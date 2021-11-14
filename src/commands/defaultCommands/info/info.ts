@@ -35,8 +35,8 @@ export default new Command({
 
     const embed = new MessageEmbed(embedData);
 
-    embed.addField('Servers', guilds, true);
-    embed.addField('Users', users, true);
+    embed.addField('Servers', String(guilds), true);
+    embed.addField('Users', String(users), true);
     embed.addField('Uptime', uptime, false);
     embed.addField('Ping', ping + 'ms', true);
 

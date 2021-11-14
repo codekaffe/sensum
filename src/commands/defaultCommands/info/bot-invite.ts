@@ -9,7 +9,10 @@ export default new Command({
   category: 'info',
   permission: Permission.USER,
   async run(bot) {
-    const invite = await bot.generateInvite(Permissions.ALL);
+    const invite = await bot.generateInvite({
+      permissions: Permissions.FLAGS.SEND_MESSAGES,
+      scopes: ['bot'],
+    });
     this.send!("I'm so happy you want to invite me c:", invite);
   },
 });

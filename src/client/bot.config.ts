@@ -97,7 +97,9 @@ export const defaultConfig: IConfig = {
       name: 'Manage Messages',
       check: (message: IBotMessage) => {
         try {
-          return message.guild?.member(message.author)?.hasPermission('MANAGE_MESSAGES');
+          return message.guild?.members.cache
+            .get(message.author.id)
+            ?.permissions.has('MANAGE_MESSAGES');
         } catch (ex) {
           return false;
         }
@@ -109,7 +111,9 @@ export const defaultConfig: IConfig = {
       name: 'Manage Roles',
       check: (message: IBotMessage) => {
         try {
-          return message.guild?.member(message.author)?.hasPermission('MANAGE_ROLES');
+          return message.guild?.members.cache
+            .get(message.author.id)
+            ?.permissions.has('MANAGE_ROLES');
         } catch (ex) {
           return false;
         }
@@ -121,7 +125,9 @@ export const defaultConfig: IConfig = {
       name: 'Manage Guild',
       check: (message: IBotMessage) => {
         try {
-          return message.guild?.member(message.author)?.hasPermission('MANAGE_GUILD');
+          return message.guild?.members.cache
+            .get(message.author.id)
+            ?.permissions.has('MANAGE_GUILD');
         } catch (ex) {
           return false;
         }
@@ -135,8 +141,8 @@ export const defaultConfig: IConfig = {
       // Simple check, if the guild owner id matches the message author's ID, then it will return true.
       // Otherwise it will return false.
       check: (message: IBotMessage) =>
-        message.channel.type === 'text'
-          ? message.guild?.ownerID === message.author.id
+        message.channel.type === 'GUILD_TEXT'
+          ? message.guild?.ownerId === message.author.id
             ? true
             : false
           : false,
