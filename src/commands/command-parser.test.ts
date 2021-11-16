@@ -1,4 +1,4 @@
-import { validatePrefix } from './command';
+import { Conditions } from "./command-runner";
 
 describe('command parser', () => {
   describe('validate prefix', () => {
@@ -6,36 +6,36 @@ describe('command parser', () => {
     const customPrefixesMap = new Map([['a guild id', { prefix: '$' }]]);
 
     test('should be defined', () => {
-      expect(validatePrefix).toBeDefined();
+      expect(Conditions._validatePrefix).toBeDefined();
     });
 
     test('return truthy if correct default prefix', () => {
       const message = { content: '>hello there' };
-      expect(validatePrefix(message as any, defaultPrefix)).toBeTruthy();
+      expect(Conditions._validatePrefix(message as any, defaultPrefix)).toBeTruthy();
     });
     test('return truthy if correct custom prefix', () => {
       const message = { guild: { id: 'a guild id' }, content: '$hello there' };
-      expect(validatePrefix(message as any, defaultPrefix, customPrefixesMap)).toBeTruthy();
+      expect(Conditions._validatePrefix(message as any, defaultPrefix, customPrefixesMap)).toBeTruthy();
     });
     test('return false if wrong default prefix', () => {
       const message = { content: '!hello there' };
-      expect(validatePrefix(message as any, defaultPrefix)).toBeFalsy();
+      expect(Conditions._validatePrefix(message as any, defaultPrefix)).toBeFalsy();
     });
     test('return false if wrong custom prefix', () => {
       const message = { guild: { id: 'a guild id' }, content: '-hello there' };
-      expect(validatePrefix(message as any, defaultPrefix, customPrefixesMap)).toBeFalsy();
+      expect(Conditions._validatePrefix(message as any, defaultPrefix, customPrefixesMap)).toBeFalsy();
     });
     test('return false if uses default prefix and has custom prefix', () => {
       const message = { guild: { id: 'a guild id' }, content: '>hello there' };
-      expect(validatePrefix(message as any, defaultPrefix, customPrefixesMap)).toBeFalsy();
+      expect(Conditions._validatePrefix(message as any, defaultPrefix, customPrefixesMap)).toBeFalsy();
     });
     test('return prefix if correct prefix', () => {
       const message = { guild: { id: 'a guild id' }, content: '>hello there' };
-      expect(validatePrefix(message as any, defaultPrefix)).toEqual('>');
+      expect(Conditions._validatePrefix(message as any, defaultPrefix)).toEqual('>');
     });
     test('return custom prefix if correct custom prefix', () => {
       const message = { guild: { id: 'a guild id' }, content: '$hello there' };
-      expect(validatePrefix(message as any, defaultPrefix, customPrefixesMap)).toEqual('$');
+      expect(Conditions._validatePrefix(message as any, defaultPrefix, customPrefixesMap)).toEqual('$');
     });
   });
 

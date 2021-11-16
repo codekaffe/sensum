@@ -1,28 +1,29 @@
-import { Client, GuildChannel, ClientOptions } from 'discord.js';
+import { Client, ClientOptions } from 'discord.js';
 import Collection from '@discordjs/collection';
 import merge from 'lodash.merge';
 
-import { promisify, inspect } from 'util';
+import { inspect } from 'util';
 import os from 'os';
 
 import { IBotClient, IBotMessage } from '../interfaces';
-import { defaultConfig, IConfig } from './bot.config';
-import { Command, CooldownManager } from '../commands/command';
+import { Command } from '../commands/command';
 import { Schedule, Task } from '../tasks/tasks';
 import { EventHandler, wrapEventHandler } from '../events/event-handler';
 import { Listener, ListenerIgnoreList, ListenerRunner } from '../listeners/listener';
 import * as FileLoader from '../modules/file-loader';
-
 import {
-  IPrefixChecker,
+  CommandRunner,
   ICommandExtenders,
-  IMetaExtender,
-  makeCommandRunner,
-} from '../commands/message';
+  IContextExtender as IContextExtender,
+  IPrefixChecker,
+} from '../commands/command-runner';
+import { CooldownManager } from '../commands/cooldown-manager';
+import { defaultConfig, IConfig } from './bot.config';
 
 export class BotClient extends Client implements IBotClient {
   config: IBotClient['config'];
   commands: IBotClient['commands'];
+  commandRunner: IBotClient['commandRunner'];
   botListeners: IBotClient['botListeners'];
   _listenerRunner: IBotClient['_listenerRunner'];
   aliases: IBotClient['aliases'];
@@ -60,57 +61,12 @@ export class BotClient extends Client implements IBotClient {
     this.permLevelCache = permLevelCache;
 
     this.extensions = {
-      metaExtenders: [],
+      contextExtenders: [],
       prefixCheckers: [],
     };
+
+    this.commandRunner = new CommandRunner(this, this.extensions);
   }
-
-  // Helper Functions
-  wait = promisify(setTimeout);
-  randInt = (min: number, max: number) => Math.floor(Math.random() * (+max - +min)) + +min;
-  colorInt = (hexIn: string) => parseInt(hexIn.split('#')[1], 16);
-
-  lines = (...lines: string[]) => {
-    if (!lines || !lines.length) {
-      return '';
-    }
-    if (lines.length === 1) {
-      return String(lines[0]).trim();
-    }
-    return lines.reduce((all, current) => `${all}\n${String(current).trim()}`, '').trim();
-  };
-
-  appendMsg = async (
-    msg: IBotMessage,
-    content: string,
-    delay: number = 0,
-  ): Promise<IBotMessage> => {
-    try {
-      await this.wait(delay);
-      msg = await msg?.edit(`${msg?.content}${content}`);
-    } catch {}
-    return msg;
-  };
-
-  getChannelsInMessage = async (message: IBotMessage): Promise<GuildChannel[]> => {
-    const channelMentionRegex = /(?<=<#)(\d+?)(?=>)/g;
-    const channelsInMessage = message.content.match(channelMentionRegex) || [];
-
-    if (!message.guild) return [];
-    if (channelsInMessage.length === 0) return [];
-
-    const channelsInGuild = message.guild.channels.cache.filter((c) => c.type === 'GUILD_TEXT');
-
-    const channels = channelsInMessage
-      // remove duplicates
-      .filter((v, i, a) => a.indexOf(v) === i)
-      // get the channels
-      .map((channelId) => channelsInGuild.get(channelId))
-      // remove falsy values
-      .filter((c) => c !== undefined) as GuildChannel[];
-
-    return channels;
-  };
 
   /*
   MESSAGE CLEAN FUNCTION
@@ -138,33 +94,20 @@ export class BotClient extends Client implements IBotClient {
   NEVER GIVE ANYONE BUT OWNER THE LEVEL 10! By default this can run any
   command including the VERY DANGEROUS `eval` and `exec` commands!
   */
-  permlevel = (message: IBotMessage) => {
-    let permlvl = 0;
+  permlevel(message: IBotMessage): number {
+    let permissionLevel = 0;
 
     const permOrder = this.config.permLevels!.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
 
     while (permOrder.length) {
       const currentLevel = permOrder.shift();
-      if (message.guild && currentLevel!.guildOnly) continue;
       if (currentLevel!.check(message)) {
-        permlvl = currentLevel!.level;
+        permissionLevel = currentLevel!.level;
         break;
       }
     }
-    return permlvl;
-  };
-
-  // Helper Alias
-  helpers = {
-    wait: this.wait,
-    randInt: this.randInt,
-    colorInt: this.colorInt,
-    getChannelsInMessage: this.getChannelsInMessage,
-    lines: this.lines,
-    appendMsg: this.appendMsg,
-  };
-
-  // Getters
+    return permissionLevel;
+  }
 
   get memory() {
     const bot = Math.trunc(process.memoryUsage().heapUsed);
@@ -191,8 +134,6 @@ export class BotClient extends Client implements IBotClient {
     return process.env.npm_package_version!;
   }
 
-  // ! Critical functions
-
   loadCommand(command: Command) {
     if (!command) return;
     if (!(command instanceof Command)) return;
@@ -215,8 +156,8 @@ export class BotClient extends Client implements IBotClient {
     prefixChecking: (checker: IPrefixChecker) => {
       this.extensions.prefixCheckers.push(checker);
     },
-    metaParsing: (extender: IMetaExtender) => {
-      this.extensions.metaExtenders.push(extender);
+    contextParsing: (extender: IContextExtender) => {
+      this.extensions.contextExtenders.push(extender);
     },
   };
 
@@ -251,13 +192,9 @@ export class BotClient extends Client implements IBotClient {
       models,
     );
 
-    // Here we load **commands** into memory, as a collection, so they're accessible
-    // here and everywhere else.
     (commands as Command[]).forEach((cmd) => this.loadCommand(cmd));
-    // Pass the command collection into the cooldowns manager.
     this.cooldowns.loadCommands(this.commands);
 
-    // Start the scheduler with the imported tasks.
     this.schedule = new Schedule(this, tasks as Task[]);
 
     // Load events into client.
@@ -282,11 +219,11 @@ export class BotClient extends Client implements IBotClient {
       await this._loadSensumObjects();
     }
 
-    const runner = makeCommandRunner(this.extensions, this) as any;
+    const runner = this.commandRunner.makeRunner();
 
     // Listen to commands
-    this.on('messageCreate', runner);
-    this.on('messageUpdate', (_, message) => runner(message));
+    this.on('messageCreate', runner as any);
+    this.on('messageUpdate', (_, message) => runner(message as unknown as IBotMessage));
 
     return super.login(token ?? this.config.token);
   }

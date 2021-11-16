@@ -1,15 +1,7 @@
-import Collection from '@discordjs/collection';
-import { Snowflake } from 'discord.js';
 import mri from 'mri';
 import Validator, { ValidationError } from 'fastest-validator';
 
-import {
-  ICommandOptions,
-  Permission,
-  IBotMessage,
-  ICommandMetadata,
-  IBotClient,
-} from '../interfaces';
+import { ICommandOptions, IBotMessage, ICommandContext, IBotClient } from '../interfaces';
 import { SensumSchemaError } from '../errors';
 
 const validator = new Validator();
@@ -22,7 +14,7 @@ const validator = new Validator();
  *   description: 'Says hello back to you.',
  *   category: 'greeting',
  *   aliases: ['hi'],
- *   run(message, args, call) {
+ *   run(message, args, context) {
  *     message.channel.send(`Hello ${message.author}!`);
  *   },
  * });
@@ -43,9 +35,6 @@ export class Command<T = { [key: string]: any }> implements ICommandOptions<T> {
   delete: ICommandOptions<T>['delete'] = false;
   init: ICommandOptions<T>['init'] = () => {};
   shutdown: ICommandOptions<T>['shutdown'] = () => {};
-  send!: ICommandOptions<T>['send'];
-
-  static readonly Permission = Permission;
 
   /**
    * @param {ICommandOptions<T>} options={} The options for this command.
@@ -97,70 +86,23 @@ export const splitCommandAndArguments = (
   };
 };
 
-/**
- * ! Command Parsing
- */
-
-/**
- * Validates whether this message starts with the default prefix or if it matches
- * a custom prefix set by the guild it comes from.
- * @returns {string|false} Returns the prefix or false if check failed.
- */
-export const validatePrefix = (
-  message: IBotMessage,
-  defaultPrefix: string,
-  guildPrefixes?: Map<string, any>,
-): string | false => {
-  const content = message.content.trim().toLowerCase().replace(/\s\s+/g, ' ');
-
-  // return truthy if no guildPrefixes map provided and command starts with prefix
-  if (!guildPrefixes) {
-    return content.startsWith(defaultPrefix) ? defaultPrefix : false;
-  }
-
-  const guildId = message.guild?.id;
-  // If guild prefix equals default prefix that should not be treated as a custom prefix.
-  const customPrefix =
-    guildPrefixes.get(guildId!)?.prefix === defaultPrefix
-      ? false
-      : guildPrefixes.get(guildId!)?.prefix;
-
-  // do not run command with normal prefix if a custom prefix is set
-  if (customPrefix && content.startsWith(defaultPrefix)) {
-    return false;
-  }
-
-  // has custom prefix and command starts with it
-  if (customPrefix && content.startsWith(customPrefix)) {
-    return customPrefix;
-  }
-
-  // does not have custom prefix and command starts with default prefix
-  if (!customPrefix && content.startsWith(defaultPrefix)) {
-    return defaultPrefix;
-  }
-
-  // false if doesn't start with correct prefix
-  return false;
-};
-
-export const buildCommandMetadata = (
+export const buildCommandContext = (
   bot: IBotClient,
   message: IBotMessage,
   prefix: string,
-): ICommandMetadata => {
-  const meta = {} as ICommandMetadata;
+): ICommandContext => {
+  const context = {} as ICommandContext;
 
   // Known props
-  meta.isDM = message.channel.type === 'DM';
-  meta.userId = message.author.id;
-  meta.tag = message.author.tag;
-  meta.username = message.author.username;
-  meta.nickname = message.member?.nickname ?? null;
-  meta.guild = message.guild;
-  meta.message = message;
-  meta.time = new Date();
-  meta.permLevel = bot.permlevel(message);
+  context.isDM = message.channel.type === 'DM';
+  context.userId = message.author.id;
+  context.tag = message.author.tag;
+  context.username = message.author.username;
+  context.nickname = message.member?.nickname ?? null;
+  context.guild = message.guild;
+  context.message = message;
+  context.time = new Date();
+  context.permLevel = bot.permlevel(message);
 
   const { command, args } = splitCommandAndArguments(message.content, prefix);
 
@@ -171,19 +113,19 @@ export const buildCommandMetadata = (
     cmd = bot.commands.get(bot.aliases.get(command!)!);
   }
 
-  meta.command = cmd ?? null;
-  meta.commandName = cmd?.name ?? null;
-  meta.calledByAlias = isAlias;
-  meta.args = {};
-  meta.cliArgs = mri(args);
+  context.command = cmd ?? null;
+  context.commandName = cmd?.name ?? null;
+  context.calledByAlias = isAlias;
+  context.args = {};
+  context.cliArgs = mri(args);
 
   const requiredArgsInOrder = cmd?.args ? Object.keys(cmd?.args) : [];
 
-  meta.content = args
+  context.content = args
     .slice(requiredArgsInOrder.length ?? 0)
     .join(' ')
     .trim(); // slice to skip required args
-  meta.contentFull = args.join(' ').trim();
+  context.contentFull = args.join(' ').trim();
 
   if (cmd?.args) {
     const params: Record<string, unknown> = {};
@@ -193,16 +135,16 @@ export const buildCommandMetadata = (
     try {
       const validationResult = validator.validate(params, cmd.args);
       if (validationResult === true) {
-        meta.args = params;
+        context.args = params;
       } else {
         // alternative validation with cli style args
-        const paramsAlt = Object.assign({}, params, meta.cliArgs);
+        const paramsAlt = Object.assign({}, params, context.cliArgs);
         const validationResultAlt = validator.validate(paramsAlt, cmd.args);
         if (validationResultAlt === true) {
-          meta.args = paramsAlt;
-          delete meta.args._;
+          context.args = paramsAlt;
+          delete context.args._;
         } else {
-          meta.validationErrors = validationResult as ValidationError[];
+          context.validationErrors = validationResult as ValidationError[];
         }
       }
     } catch (err) {
@@ -212,78 +154,13 @@ export const buildCommandMetadata = (
       bot.emit(
         'error',
         new Error(
-          `Looks like you have a problem with your args schema in the "${meta.commandName}" command.`,
+          `Looks like you have a problem with your args schema in the "${context.commandName}" command.`,
         ),
       );
     }
   }
 
-  meta.prefix = prefix;
+  context.prefix = prefix;
 
-  return meta;
+  return context;
 };
-
-/**
- * ! Command Running
- */
-
-export class CooldownManager extends Collection<string, Collection<Snowflake, number>> {
-  bot: IBotClient;
-
-  constructor(bot: IBotClient) {
-    super();
-    if (!bot) throw new Error('CooldownManager needs a client.');
-    this.bot = bot;
-  }
-
-  loadCommands(commands: IBotClient['commands']) {
-    commands.forEach((cmd) => {
-      super.set(cmd.name.toLowerCase(), new Collection());
-    });
-  }
-
-  updateTimeLeft(commandName: string, userId: Snowflake) {
-    if (!this.bot.commands.has(commandName)) {
-      throw new Error(`Could not update cooldown because command ${commandName} was not found.`);
-    }
-    const now = Date.now();
-    const timestamps = super.get(commandName);
-    if (timestamps) {
-      timestamps.set(userId, now);
-    } else {
-      throw new Error(
-        `Could not update cooldown because there was no collection for the command ${commandName}.`,
-      );
-    }
-  }
-
-  getTimeLeft(commandName: string, userId: Snowflake): number {
-    if (!this.bot.commands.has(commandName)) {
-      throw new Error(
-        `Could not get cooldown left for user ${userId} because "${commandName}" was not in the bot.commands collection.`,
-      );
-    }
-    const cmd = this.bot.commands.get(commandName)!;
-    const now = Date.now();
-    const cooldownAmount = (cmd.cooldown ?? 3) * 1000;
-
-    const timestamps = super.get(commandName);
-    if (!timestamps) {
-      throw new Error(
-        `Could not get cooldown left for user ${userId} because there was no timestamps collection for the command ${commandName}.`,
-      );
-    }
-    if (timestamps.has(userId)) {
-      const expirationTime = timestamps.get(userId)! + cooldownAmount;
-      if (now < expirationTime) {
-        // Return seconds left
-        return Number(((expirationTime - now) / 1000).toFixed(1));
-      }
-      return 0;
-    }
-    // User haven't used the command yet, add them to the collection
-    this.updateTimeLeft(commandName, userId);
-    setTimeout(() => timestamps.delete(userId), cooldownAmount);
-    return 0;
-  }
-}

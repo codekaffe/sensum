@@ -1,11 +1,9 @@
 import {
   Client,
-  GuildChannel,
   Guild,
   Snowflake,
   Message,
   MessageEditOptions,
-  MessageOptions,
   ClientEvents,
   MessagePayload,
 } from 'discord.js';
@@ -16,9 +14,11 @@ import { Job } from 'node-schedule';
 
 import { IConfig } from './client/bot.config';
 import { BotClient } from './client/bot-client';
-import { Command, CooldownManager } from './commands/command';
+import { Command } from './commands/command';
 import { Listener, ListenerIgnoreList, ListenerRunner } from './listeners/listener';
 import { Schedule } from './tasks/tasks';
+import { CooldownManager } from './commands/cooldown-manager';
+import { CommandRunner } from './commands/command-runner';
 
 export type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;
 export type OmitPropertiesOfType<T, U> = { [K in keyof T]: T[K] extends U ? K : never }[keyof T];
@@ -44,6 +44,7 @@ interface ExtendedClient {
 
   // Stores
   commands: Collection<string, Command>;
+  commandRunner: CommandRunner;
   aliases: Collection<string, string>;
   cooldowns: CooldownManager;
   botListeners: Overwrite<
@@ -58,24 +59,9 @@ interface ExtendedClient {
   // Utility methods
   permlevel(message: IBotMessage): number;
   clean(text: string): Promise<string>;
-  wait(time: number): Promise<void>;
-  randInt(min: number, max: number): number;
-  colorInt(hex: string): number;
-  getChannelsInMessage(message: IBotMessage): Promise<GuildChannel[]>;
-  lines(...lines: string[]): string;
-  appendMsg(msg: IBotMessage, content: string, delay?: number): Promise<IBotMessage>;
+
   loadCommand(command: Command): void;
   // unloadCommand(commandName: string): Promise<void>;
-
-  // Helper functions will also go into .helpers for semanticness.
-  helpers: {
-    wait: ExtendedClient['wait'];
-    randInt: ExtendedClient['randInt'];
-    colorInt: ExtendedClient['colorInt'];
-    getChannelsInMessage: ExtendedClient['getChannelsInMessage'];
-    lines: ExtendedClient['lines'];
-    appendMsg: ExtendedClient['appendMsg'];
-  };
 
   // A cache of client permissions for pretty perm names in commands.
   permLevelCache: {
@@ -89,8 +75,8 @@ export interface IBotEvents
   extends Overwrite<
     ClientEvents,
     {
-      command: [ICommandMetadata];
-      listener: [Listener, ICommandMetadata];
+      command: [ICommandContext];
+      listener: [Listener, ICommandContext];
       vote: [Object];
     }
   > {}
@@ -104,10 +90,7 @@ export interface IBotMessage
     }
   > {}
 
-export type CombinedMeta<T> = ICommandMetadata & T;
-
-type ISendFnLastArg = string | MessageOptions;
-type ISendFnReturn = Promise<void | IBotMessage>;
+export type CombinedContext<T> = ICommandContext & T;
 
 export interface IListenerOptions<T> {
   /**
@@ -137,7 +120,7 @@ export interface IListenerOptions<T> {
   /**
    * The method that will be run when the listener is triggered.
    */
-  run(bot: IBotClient, message: IBotMessage, meta: CombinedMeta<T>): any;
+  run(bot: IBotClient, message: IBotMessage, context: CombinedContext<T>): any;
   /**
    * This function is called when the listener is loaded
    */
@@ -207,7 +190,7 @@ export interface ICommandOptions<T> {
    * @param {string[]} args The args this command was called with.
    * @param {number} level The permission level.
    */
-  run(bot: BotClient, message: IBotMessage, meta: CombinedMeta<T>): any;
+  run(bot: BotClient, message: IBotMessage, context: CombinedContext<T>): any;
   /**
    * The init function will be called when the command is loaded.
    */
@@ -216,82 +199,9 @@ export interface ICommandOptions<T> {
    * The shutdown function will be called when the command is unloaded.
    */
   shutdown?(bot: IBotClient): void;
-  /**
-   * Use it to send messages back to the channel and safely log any errors.
-   */
-  send?(arg1: any): ISendFnReturn;
-  // this mess will be here until typescript allows for explicit last parameter typing
-  send?(arg1: any, options: ISendFnLastArg): ISendFnReturn;
-  send?(arg1: any, arg2: any, options: ISendFnLastArg): ISendFnReturn;
-  send?(arg1: any, arg2: any, arg3: any, options: ISendFnLastArg): ISendFnReturn;
-  send?(arg1: any, arg2: any, arg3: any, arg4: any, options: ISendFnLastArg): ISendFnReturn;
-  send?(
-    arg1: any,
-    arg2: any,
-    arg3: any,
-    arg4: any,
-    arg5: any,
-    options: ISendFnLastArg,
-  ): ISendFnReturn;
-  send?(
-    arg1: any,
-    arg2: any,
-    arg3: any,
-    arg4: any,
-    arg5: any,
-    arg6: any,
-    options: ISendFnLastArg,
-  ): ISendFnReturn;
-  send?(
-    arg1: any,
-    arg2: any,
-    arg3: any,
-    arg4: any,
-    arg5: any,
-    arg6: any,
-    arg7: any,
-    options: ISendFnLastArg,
-  ): ISendFnReturn;
-  send?(
-    arg1: any,
-    arg2: any,
-    arg3: any,
-    arg4: any,
-    arg5: any,
-    arg6: any,
-    arg7: any,
-    arg8: any,
-    options: ISendFnLastArg,
-  ): ISendFnReturn;
-  send?(
-    arg1: any,
-    arg2: any,
-    arg3: any,
-    arg4: any,
-    arg5: any,
-    arg6: any,
-    arg7: any,
-    arg8: any,
-    arg9: any,
-    options: ISendFnLastArg,
-  ): ISendFnReturn;
-  send?(
-    arg1: any,
-    arg2: any,
-    arg3: any,
-    arg4: any,
-    arg5: any,
-    arg6: any,
-    arg7: any,
-    arg8: any,
-    arg9: any,
-    arg10: any,
-    options: ISendFnLastArg,
-  ): ISendFnReturn;
-  // send?(...args: any): sendFnReturn;
 }
 
-export interface ICommandMetadata {
+export interface ICommandContext {
   /**
    * The id of the user that called the command.
    */

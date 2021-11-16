@@ -19,9 +19,9 @@ module.exports = new Command({
   aliases: ['yeehaw'],
   delete: true,
   category: 'funny',
-  async run(message, args, meta) {
+  async run(message, args, context) {
     // Yeeeeeeeeeeeeeeeeeeeehaw! 🐄
-    const msg = await meta.respond('Yeehaw!');
+    const msg = await message.channel.send('Yeehaw!');
     msg.react('🤠').catch(() => {});
   },
 });

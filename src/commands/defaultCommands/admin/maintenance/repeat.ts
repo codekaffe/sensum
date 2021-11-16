@@ -1,5 +1,5 @@
 import { Command } from '../../../command';
-import { Permission } from '../../../../interfaces';
+import { Permission } from '../../../../permissions/permissions';
 
 export default new Command({
   name: 'repeat',
@@ -7,10 +7,10 @@ export default new Command({
   category: 'maintenance',
   permission: Permission.BOT_SUPPORT,
   delete: true,
-  run(bot, message, meta) {
-    const name = meta.nickname || meta.username;
-    const msg = name + ' said ' + meta.content; 
-    this.send!(msg);
+  run(bot, message, context) {
+    const name = context.nickname || context.username;
+    const msg = name + ' said ' + context.content;
+    message.channel.send(msg);
     bot.emit('debug', 'REPEAT COMMAND: ' + msg);
   },
 });

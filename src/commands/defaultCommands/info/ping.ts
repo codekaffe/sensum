@@ -1,5 +1,5 @@
+import { Permission } from '../../../permissions/permissions';
 import { Command } from '../../command';
-import { Permission } from '../../../interfaces';
 
 export default new Command({
   name: 'ping',
@@ -7,7 +7,7 @@ export default new Command({
   permission: Permission.USER,
   category: 'info',
   runIn: ['guild', 'dm'],
-  async run() {
-    this.send!('Pong!');
+  async run(bot, message) {
+    message.channel.send('Pong!');
   },
 });

@@ -1,13 +1,14 @@
 import { Command } from '../../../command';
+import { Permission } from '../../../../permissions/permissions';
 
 export default new Command({
   name: 'eval',
   description: 'Troubleshooting command.',
-  permission: Command.Permission.BOT_OWNER,
+  permission: Permission.BOT_OWNER,
   hidden: true,
   category: 'maintenance',
-  async run(bot, message, meta) {
-    const { content } = meta;
+  async run(bot, message, context) {
+    const { content } = context;
     try {
       const evaled = eval(content);
       const clean = await bot.clean(evaled);

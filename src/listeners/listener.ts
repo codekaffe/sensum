@@ -1,12 +1,14 @@
 /* eslint-disable no-console */
 import Collection from '@discordjs/collection';
 import { Snowflake, TextChannel } from 'discord.js';
-import { IBotMessage, IListenerOptions, CombinedMeta } from '../interfaces';
+
+import { IBotMessage, IListenerOptions, CombinedContext } from '../interfaces';
 import { BotClient } from '../client/bot-client';
 import { isObject } from '../util';
 import { SensumSchemaError } from '../errors';
-import { buildCommandMetadata } from '../commands/command';
-import { ICommandExtenders } from '../commands/message';
+import { buildCommandContext } from '../commands/command';
+import { ICommandExtenders } from '../commands/command-runner';
+import { lines } from '../client/helpers/text-helpers';
 
 export const COMMON_EXPRESSIONS = {
   // TODO: find a way to add "me" in here
@@ -85,7 +87,7 @@ export class Listener<T = { [key: string]: any }> implements IListenerOptions<T>
     this.run = run;
   }
 
-  evaluate(message: IBotMessage, meta: CombinedMeta<T>) {
+  evaluate(message: IBotMessage, context: CombinedContext<T>) {
     const { author } = message;
     const guildId = message.guild?.id;
     if (author.bot) return null;
@@ -98,7 +100,7 @@ export class Listener<T = { [key: string]: any }> implements IListenerOptions<T>
       if (stringMatch(message, this.words)) {
         if (message.client.botListeners.ignored.guilds.has(message.guild?.id as any)) return;
         if (message.client.botListeners.ignored.channels.has(message.channel.id)) return;
-        const result = this.run(message.client, message, meta);
+        const result = this.run(message.client, message, context);
         // set cooldown
         this._cooldowns.set(author.id, Date.now() + this.cooldown * 1000);
         if (guildId && this.globalCooldown) {
@@ -272,24 +274,24 @@ export class ListenerRunner {
       if (!bot.botListeners.size) return;
 
       const safeSend = (...args: any): Promise<void | IBotMessage> => {
-        const lines = [...args];
-        const lastArg = lines.pop();
-        const msg = bot.helpers.lines(...lines, typeof lastArg === 'string' ? lastArg : '');
+        const messageLines = [...args];
+        const lastArg = messageLines.pop();
+        const msg = lines(...messageLines, typeof lastArg === 'string' ? lastArg : '');
 
         return channel()
           .send(isObject(lastArg) ? { ...lastArg, content: msg } : msg)
           .catch((err) => {
             const channelName = (message.channel as TextChannel).name;
             const channelId = message.channel.id;
-            const guildName = meta.guild?.name;
-            const guildId = meta.guild?.id;
+            const guildName = context.guild?.name;
+            const guildId = context.guild?.id;
             bot.emit(
               'warn',
-              bot.helpers.lines(
+              lines(
                 `Could not send message.`,
                 `Channel: ${channelName} (${channelId})`,
                 `Guild: ${guildName} (${guildId})`,
-                `DM: ${meta.isDM}`,
+                `DM: ${context.isDM}`,
                 `Error: ${err.message}`,
               ),
             );
@@ -298,18 +300,18 @@ export class ListenerRunner {
 
       const entries = Object.entries(this.mappedListeners);
 
-      const meta = buildCommandMetadata(bot, message as unknown as IBotMessage, '');
-      if (extensions.metaExtenders.length) {
-        for (const extension of extensions.metaExtenders) {
+      const context = buildCommandContext(bot, message as unknown as IBotMessage, '');
+      if (extensions.contextExtenders.length) {
+        for (const extension of extensions.contextExtenders) {
           try {
-            const extended = extension(meta);
+            const extended = extension(context);
             if (extended instanceof Promise) {
               // await in for..of loop because this must be sequential
               await extended;
             }
           } catch (err) {
             (err as Error).message =
-              'A meta extension function threw an error.\n\n' + (err as Error).message;
+              'A context extension function threw an error.\n\n' + (err as Error).message;
             bot.emit('error', err as Error);
             return;
           }
@@ -325,7 +327,7 @@ export class ListenerRunner {
           listener.send = (...args: any) => safeSend(...args);
           let result;
           try {
-            const evaluation = listener.evaluate(message as unknown as IBotMessage, meta);
+            const evaluation = listener.evaluate(message as unknown as IBotMessage, context);
             // eslint-disable-next-line no-await-in-loop
             result = evaluation instanceof Promise ? await evaluation : evaluation;
           } catch (err) {
@@ -333,7 +335,7 @@ export class ListenerRunner {
             break;
           }
           if (result === true || result === false) {
-            this.bot.emit('listener', listener, meta);
+            this.bot.emit('listener', listener, context);
           }
           if (result === true) {
             break;

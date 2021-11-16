@@ -1,6 +1,8 @@
 import { MessageEmbed } from 'discord.js';
+
+import { lines } from '../../../client/helpers/text-helpers';
+import { Permission } from '../../../permissions/permissions';
 import { Command } from '../../command';
-import { Permission } from '../../../interfaces';
 
 // const { CATEGORY_EMOJIS } = require('../../util/constants.js');
 
@@ -19,14 +21,14 @@ export default new Command({
     },
   },
   examples: [' ', 'info', 'ping'],
-  run(bot, message, meta) {
-    const { args } = meta;
+  run(bot, message, context) {
+    const { args } = context;
     // return help about specific command
     if (args.command) {
       const search = args.command as string;
       const command = bot.commands.get(search) || bot.commands.get(bot.aliases.get(search) || '');
       if (!command || (command.hidden && bot.permlevel(message) < 8)) {
-        return this.send!(`I could not find the ${search} command.`);
+        return message.channel.send(`I could not find the ${search} command.`);
       }
       // gather data and send it to same channel
       const embed = new MessageEmbed({
@@ -50,7 +52,7 @@ export default new Command({
       if (command.usage) {
         embed.addField(
           ':book: Usage',
-          `\`\`\`${meta.prefix}${command.name} ${command.usage}\`\`\`` +
+          `\`\`\`${context.prefix}${command.name} ${command.usage}\`\`\`` +
             '```python\n' +
             '# Remove the brackets.\n' +
             '# {} = Required arguments\n' +
@@ -61,7 +63,7 @@ export default new Command({
       if (command.args && Object.keys(command.args).length) {
         embed.addField(
           '🛠 Argments',
-          bot.lines(
+          lines(
             ...Object.entries(command.args).map(([arg, val]) => `**${arg}** ${val.type ?? val}`),
           ),
           true,
@@ -79,7 +81,7 @@ export default new Command({
       if (command.examples?.length) {
         addExamples('examples');
       }
-      return this.send!({ embed });
+      return message.channel.send({ embeds: [embed] });
     }
 
     const botName = bot.user?.username ?? 'Bot';
@@ -97,7 +99,7 @@ export default new Command({
       description:
         `These are the commands available for ${botName}.\n` +
         'To learn more about a command use `' +
-        meta.prefix +
+        context.prefix +
         'help {command name}`',
     });
 
@@ -127,6 +129,6 @@ export default new Command({
             .reduce((acc: string, cur: Command) => `${acc} \`${cur.name}\``, ''),
       );
     });
-    return this.send!({ embed });
+    return message.channel.send({ embeds: [embed] });
   },
 });
