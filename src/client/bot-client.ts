@@ -33,7 +33,13 @@ export class BotClient extends Client implements IBotClient {
   emit!: IBotClient['emit'];
   schedule: IBotClient['schedule'];
 
-  constructor(config: IConfig, options: ClientOptions) {
+  constructor(
+    config: IConfig,
+    options: ClientOptions = {
+      allowedMentions: { parse: ['users', 'roles'], repliedUser: true },
+      intents: [],
+    },
+  ) {
     super(options);
 
     // Config
@@ -282,14 +288,6 @@ export class BotClient extends Client implements IBotClient {
     // Listen to commands
     this.on('messageCreate', runner);
     this.on('messageUpdate', (_, message) => runner(message));
-
-    // Channel Watcher events
-    for (const [eventName, eventHandler] of Object.entries(sensumInternalEvents)) {
-      this.on(
-        eventName as keyof ClientEvents,
-        (eventHandler as unknown as IEventHandler).bind(null, this),
-      );
-    }
 
     return super.login(token ?? this.config.token);
   }
