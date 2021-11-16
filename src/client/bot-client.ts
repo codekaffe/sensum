@@ -280,7 +280,7 @@ export class BotClient extends Client implements IBotClient {
     const runner = makeCommandRunner(this.extensions, this) as any;
 
     // Listen to commands
-    this.on('message', runner);
+    this.on('messageCreate', runner);
     this.on('messageUpdate', (_, message) => runner(message));
 
     // Channel Watcher events

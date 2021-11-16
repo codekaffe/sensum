@@ -257,7 +257,7 @@ export class ListenerRunner {
    * @memberof ListenerRunner
    */
   listen(extensions: ICommandExtenders) {
-    this.bot.on('message', async (message) => {
+    this.bot.on('messageCreate', async (message) => {
       const bot = this.bot;
       const channel = () => message.channel;
       if (message.author.bot) return;
