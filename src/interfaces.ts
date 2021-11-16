@@ -5,9 +5,9 @@ import {
   Snowflake,
   Message,
   MessageEditOptions,
-  MessageEmbed,
   MessageOptions,
   ClientEvents,
+  MessagePayload,
 } from 'discord.js';
 import Collection from '@discordjs/collection';
 import { ValidationSchema, ValidationError } from 'fastest-validator';
@@ -100,10 +100,7 @@ export interface IBotMessage
     Message,
     {
       client: IBotClient;
-      edit(
-        content: string,
-        options?: MessageEditOptions | MessageEmbed,
-      ): Promise<IBotMessage>;
+      edit(content: string | MessageEditOptions | MessagePayload): Promise<IBotMessage>;
     }
   > {}
 
@@ -376,18 +373,6 @@ export type IEventHandler = ((bot: IBotClient) => void) | ((bot: IBotClient) => 
 export type ITaskHandler =
   | ((bot: IBotClient, fireDate: Date) => void)
   | ((bot: IBotClient, fireDate: Date) => Promise<void>);
-
-// eslint-disable-next-line no-shadow
-export enum Permission {
-  USER = 0,
-  MANAGE_MESSAGES = 2,
-  MANAGE_ROLES = 3,
-  MANAGE_GUILD = 4,
-  SERVER_OWNER = 5,
-  BOT_SUPPORT = 8,
-  BOT_ADMIN = 9,
-  BOT_OWNER = 10,
-}
 
 export interface ITask {
   name: string;

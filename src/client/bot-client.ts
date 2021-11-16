@@ -1,17 +1,16 @@
-import { Client, GuildChannel, ClientOptions, ClientEvents } from 'discord.js';
+import { Client, GuildChannel, ClientOptions } from 'discord.js';
 import Collection from '@discordjs/collection';
 import merge from 'lodash.merge';
 
 import { promisify, inspect } from 'util';
 import os from 'os';
 
-import { IBotClient, IEventHandler, IBotMessage } from '../interfaces';
+import { IBotClient, IBotMessage } from '../interfaces';
 import { defaultConfig, IConfig } from './bot.config';
 import { Command, CooldownManager } from '../commands/command';
 import { Schedule, Task } from '../tasks/tasks';
 import { EventHandler, wrapEventHandler } from '../events/event-handler';
 import { Listener, ListenerIgnoreList, ListenerRunner } from '../listeners/listener';
-import * as sensumInternalEvents from '../events';
 import * as FileLoader from '../modules/file-loader';
 
 import {

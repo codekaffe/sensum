@@ -10,3 +10,4 @@ export * as EmojiHelpers from './emoji/emojis';
 export { BotClient } from './client/bot-client';
 export { default as defaultCommands } from './commands/defaultCommands';
 export * from './errors';
+export { Permission, IPermissionLevel, defaultPermissionLevels } from './permissions/permissions';
