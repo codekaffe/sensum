@@ -14,7 +14,7 @@ Sensum is a framework that aims to speed up discord bot development by offering 
 ```typescript
 import { BotClient, defaultCommands } from 'sensum';
 
-const bot = new BotClient({ ownerId: '12344321', prefix: '!', token: 'abc.DefGhijkLmn123' });
+const bot = new BotClient({ ownerId: '12344321', prefix: '!', token: 'abc.DefGhijkLmn123', root: __dirname });
 
 // These are optional. (eval, repeat, botInvite, help, info, ping)
 defaultCommands.forEach(cmd => bot.loadCommand(cmd));
@@ -27,7 +27,10 @@ bot.login();
 
 ### Simple Command
 
+To create a command create a file that ends in `.command.js` or `.command.ts` and export a Sensum `Command` from it. Sensum will load them automatically.
+
 ```typescript
+// my-commands-folder/howdy.command.ts
 import { Command } from 'sensum';
 
 export default new Command({
@@ -46,9 +49,12 @@ export default new Command({
 
 ### Event Handlers
 
+To create an event create a file that ends in `.event.js` or `.event.ts` and export a Sensum `EventHandler` from it. Sensum will load them automatically.
+
 Bot is ready.
 
 ```typescript
+// my-events-folder/bot-ready.event.ts
 import { EventHandler } from 'sensum';
 
 // Here, "name" and "message" are fully typed, go nuts. ;)
@@ -64,6 +70,7 @@ export default new EventHandler({
 Someone sent a message.
 
 ```typescript
+// my-events-folder/message.event.ts
 import { EventHandler } from 'sensum';
 
 export default new EventHandler({
@@ -78,6 +85,7 @@ export default new EventHandler({
 An error ocurred somewhere.
 
 ```typescript
+// my-events-folder/error-handler.event.ts
 import { EventHandler } from 'sensum';
 
 export default new EventHandler({
@@ -93,6 +101,7 @@ export default new EventHandler({
 
 -   [x] Commands
 -   [x] Listeners
+-   [x] Event Handlers
 -   [x] Scheduled Tasks
 -   [ ] Prompter
 -   [ ] Slash Commands
