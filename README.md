@@ -9,6 +9,14 @@ Sensum is a framework that aims to speed up discord bot development by offering 
 -   100% Promise-based
 -   Typescript. The auto completions will save you a lot of time.
 
+## Install
+
+`npm install sensum`
+
+or
+
+`yarn add sensum`
+
 ## Your first Sensum Bot
 
 ```typescript
