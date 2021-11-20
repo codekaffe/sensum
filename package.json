@@ -6,9 +6,8 @@
   "scripts": {
     "start": "node build/bot.js",
     "test": "tsc --noEmit --pretty && jest && npm run lint && echo \"LOOKS LIKE EVERYTHING IS GOOD! 💚\"",
-    "prepublish": "npm run build",
-    "prebuild": "rimraf build",
-    "build": "tsc",
+    "prepack": "npm run build",
+    "build": "rimraf dist && tsc",
     "lint": "eslint ./src/**/*.ts",
     "lint:fix": "eslint ./src/**/*.ts --fix",
     "deps": "npx npm-check-updates",
@@ -57,5 +56,5 @@
     "ts-jest": "27.0.7",
     "typescript": "4.4.4"
   },
-  "types": "./build/index.d.ts"
+  "types": "./dist/index.d.ts"
 }
