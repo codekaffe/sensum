@@ -76,6 +76,15 @@ export class CommandRunner {
     // Check whether the command, or alias, has been registered
     if (!context.command) return;
 
+    // Some commands may not be useable in nsfw channels
+    if (Conditions.isUnsafeNSFWCommand(message, context)) {
+      await sendErrorMessage(
+        message,
+        formatString(this.bot.config.messages!.COMMAND_FEEDBACK_SERVER_ONLY),
+      );
+      return;
+    }
+
     // Some commands may not be useable in DMs. This check prevents those commands from running
     // and return a friendly error message.
     if (Conditions.isForbiddenServerOnly(context)) {
@@ -202,6 +211,11 @@ export class Conditions {
       !context.isDM &&
       !(context.command!.runIn?.includes('text') || context.command!.runIn?.includes('guild'))
     );
+  }
+
+  static isUnsafeNSFWCommand(message: IBotMessage, context: ICommandContext): boolean {
+    if (!context.command!.nsfwOnly) return false;
+    return !((message.channel as any).nsfw as boolean) ?? true;
   }
 
   static meetsPermissionLevel(

@@ -34,6 +34,7 @@ export interface IConfig {
     COMMAND_FEEDBACK_MISSING_PERMISSION?: string;
     COMMAND_FEEDBACK_MISSING_ARGS_SINGULAR?: string;
     COMMAND_FEEDBACK_MISSING_ARGS_PLURAL?: string;
+    COMMAND_FEEDBACK_NSFW_ONLY?: string;
   };
   helpCategoryEmotes?: {
     [key: string]: string;
@@ -75,6 +76,7 @@ export const defaultConfig: IConfig = {
       `Looks like you have a few problems with your args.`,
       '{0}',
     ),
+    COMMAND_FEEDBACK_NSFW_ONLY: 'This command can only be used in NSFW channels.',
   },
   permLevels: defaultPermissionLevels,
 };

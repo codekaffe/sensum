@@ -184,6 +184,10 @@ export interface ICommandOptions<T> {
    */
   delete?: boolean;
   /**
+   * If true, the command will not be available in channels that are not nsfw.
+   */
+  nsfwOnly?: boolean;
+  /**
    * The function that will be executed when the command is called.
    * @param {IBotClient} bot The bot client.
    * @param {IBotMessage} message The message that called this command.

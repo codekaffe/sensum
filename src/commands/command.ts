@@ -33,6 +33,7 @@ export class Command<T = { [key: string]: any }> implements ICommandOptions<T> {
   examples: ICommandOptions<T>['examples'] = [];
   category: ICommandOptions<T>['category'] = 'other';
   delete: ICommandOptions<T>['delete'] = false;
+  nsfwOnly: ICommandOptions<T>['nsfwOnly'] = false;
   init: ICommandOptions<T>['init'] = () => {};
   shutdown: ICommandOptions<T>['shutdown'] = () => {};
 
