@@ -7,3 +7,6 @@ tests
 coverage
 renovate.json
 jest.config.js
+examples
+test-token.txt
+renovate.json
