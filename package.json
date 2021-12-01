@@ -22,12 +22,13 @@
     "tools",
     "commands"
   ],
-  "author": "Joaquim Neto <joaquimmy@gmail.com>",
+  "author": "Code Kaffe",
   "license": "MIT",
   "dependencies": {
     "@discordjs/collection": "^0.3.2",
     "@refabric/extend": "^1.1.4",
     "app-root-path": "^3.0.0",
+    "cosmiconfig": "^7.0.1",
     "deep-object-diff": "^1.1.0",
     "discord.js": "^13.3.1",
     "fastest-validator": "^1.12.0",

@@ -19,7 +19,7 @@ export async function hasCorrectPrefix(
   } else {
     correctPrefix = await _matchesDefaultPrefix(
       message,
-      message.client.config.defaultSettings.prefix,
+      message.client.config.prefix,
     );
   }
 

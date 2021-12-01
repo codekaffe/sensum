@@ -12,7 +12,7 @@ import { ValidationSchema, ValidationError } from 'fastest-validator';
 import { Argv } from 'mri';
 import { Job } from 'node-schedule';
 
-import { IConfig } from './client/bot.config';
+import { IConfig } from './configuration/configuration';
 import { BotClient } from './client/bot-client';
 import { Command } from './commands/command';
 import { Listener, ListenerIgnoreList, ListenerRunner } from './listeners/listener';

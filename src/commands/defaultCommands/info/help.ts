@@ -70,7 +70,7 @@ export default new Command({
         );
       }
       const addExamples = (exampleType: string) => {
-        const start = `${bot.config.defaultSettings.prefix}${command.name} `;
+        const start = `${bot.config.prefix}${command.name} `;
         const example = (command as any)[exampleType];
         const isArr = Array.isArray(example);
         const examples = isArr

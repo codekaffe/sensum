@@ -18,7 +18,8 @@ import {
   IPrefixChecker,
 } from '../commands/command-runner';
 import { CooldownManager } from '../commands/cooldown-manager';
-import { defaultConfig, IConfig } from './bot.config';
+import { IConfig, defaultConfig, configSearch } from '../configuration/configuration';
+import { IPermissionLevel } from '../permissions/permissions';
 
 export class BotClient extends Client implements IBotClient {
   config: IBotClient['config'];
@@ -34,16 +35,16 @@ export class BotClient extends Client implements IBotClient {
   schedule: IBotClient['schedule'];
 
   constructor(
-    config: IConfig,
     options: ClientOptions = {
       allowedMentions: { parse: ['users', 'roles'], repliedUser: true },
       intents: [],
     },
+    config?: IConfig,
   ) {
     super(options);
 
     // Config
-    this.config = merge({}, defaultConfig, config);
+    this.config = merge({}, defaultConfig, configSearch?.config ?? {}, config);
 
     // Command stuff
     this.commands = new Collection();

@@ -1,7 +1,7 @@
 // export * from './interfaces';
 export * from './client/helpers';
 export * from './interfaces';
-export * from './client/bot.config';
+export { IConfig, defaultConfig } from './configuration/configuration';
 export * from './commands';
 export * from './listeners';
 export * from './tasks';

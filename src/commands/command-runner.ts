@@ -191,7 +191,7 @@ export class Conditions {
     } else {
       correctPrefix = await this._matchesDefaultPrefix(
         message,
-        message.client.config.defaultSettings.prefix,
+        message.client.config.prefix,
       );
     }
 
