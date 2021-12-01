@@ -4,7 +4,7 @@ import { IBotClient, IBotEvents } from '../interfaces';
 export class EventHandler<K extends keyof IBotEvents> {
   name: string;
   run: SensumEventHandler<K>;
-  enabled: boolean;
+  enabled?: boolean = true;
 
   constructor({
     name,

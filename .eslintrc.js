@@ -35,4 +35,5 @@ module.exports = {
     '@typescript-eslint/no-useless-constructor': 'error',
     '@typescript-eslint/require-array-sort-compare': 'error',
   },
+  ignorePatterns: ['examples/**/*.js'],
 };
